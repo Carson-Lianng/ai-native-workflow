@@ -1,0 +1,12 @@
+.DS_Store
+Thumbs.db
+node_modules/
+*.log
+.idea/
+.vscode/
+.venv/
+.env
+.env.*
+
+# 使用本工作流的项目会生成 backlog/，本仓库自身不需要
+/backlog/
