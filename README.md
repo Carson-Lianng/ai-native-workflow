@@ -43,7 +43,7 @@
 ### 第 1 步 · 安装工作流（一次性，装到全局）
 
 ```bash
-git clone https://github.com/<你的账号>/ai-native-workflow.git
+git clone https://github.com/Carson-Lianng/ai-native-workflow.git
 cd ai-native-workflow
 ./install.sh          # 自动探测已安装的 agent，把技能装到对应目录
 ```
