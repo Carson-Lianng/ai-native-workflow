@@ -140,15 +140,27 @@ backlog board
 ## 仓库结构
 
 ```
-docs/                     0x 原理与操作手册
-templates/
-  AGENTS.md               agent 操作契约（复制到项目根）
-  CONTEXT.md              项目事实文件（复制到项目根）
-  backlog.config.yml      DoD / 状态 / 开关配置（合并进 backlog/config.yml）
-skills/
-  workflow-init/          一句话初始化整套工作流
-  backlog-sdd-bridge/     把 SDD 六阶段与 backlog 命令串联
-install.sh                安装器（探测环境 / 干跑 / 自定义目录）
+README.md                  本文：5 分钟上手
+install.sh                 安装器（探测环境 / --dry-run / --dest / --project）
+
+templates/                 铺进你的项目，是模板的唯一真源
+  AGENTS.md                agent 操作契约　→ 项目根
+  CONTEXT.md               项目事实文件　→ 项目根
+  backlog.config.yml       完整模式 DoD / 状态 / 标签　→ 合并进 backlog/config.yml
+  backlog.config.lite.yml  轻量模式 DoD（3 项）　→ 合并进 backlog/config.yml
+
+skills/                    由 install.sh 装到 agent 技能目录
+  workflow-init/           说一句「初始化工作流」即铺好整套
+  backlog-sdd-bridge/      把 SDD 六阶段与 backlog 命令串联
+
+docs/                      原理与手册
+  01-workflow.md           三件套协同、设计原则、五环节
+  02-modes.md              轻量 / 完整模式操作手册
+  03-gates.md              DoD、AC、labels、反证
+  04-antipatterns.md       反模式与落地 Checklist
+
+scripts/verify-links.sh    维护者自检：相对链接 + 个人化表述残留
+LICENSE                    MIT
 ```
 
 ---
