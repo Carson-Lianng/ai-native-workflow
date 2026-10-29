@@ -1,0 +1,25 @@
+# Backlog.md 项目配置示例
+# 放入项目根目录：backlog.config.yml
+# 完整配置项见 Backlog.md 官方 ADVANCED-CONFIG.md
+
+# 任务文件目录（默认 backlog，也可 .backlog 或自定义）
+backlog_directory: backlog
+
+# 任务 ID 前缀（默认 TASK，产生 TASK-1、TASK-2 …；可改如 BACK）
+task_prefix: TASK
+
+# ID 是否补零（TASK-001）
+zeroPaddedIds: false
+
+# 完成定义（Definition of Done）：每个新任务默认带上的完成项
+# 这是 Agent Skills 门禁在 Backlog.md 里的落地载体
+definition_of_done:
+  - 测试通过且无回归
+  - 所有验收断言已逐条 --check-ac 标记完成
+  - 五轴审查通过（正确性/设计/安全/测试/体验）
+  - 决定与文档已更新（backlog decision / docs）
+  - 关键检查已做反证
+
+# Git 集成（复杂项目建议开启，保证跨分支状态准确）
+checkActiveBranches: true
+autoCommit: true
