@@ -46,10 +46,10 @@ backlog task create "<标题>" \
 ### 3. 实现
 
 ```bash
-backlog task edit <id> -s "In Progress" -a @me
+backlog task edit <id> -s "In Progress" -a <你的名字>
 ```
 
-遵守 TDD：先写失败测试 → 确认失败 → 最小实现 → 重构 → 提交。
+遵守 TDD：先写能暴露预期缺失的检查，确认它失败，再做最小实现，最后重构。每次只推进一个可以判断的行为。
 **不重新定义需求，不因实现困难偷偷改验收标准。**
 
 ### 4. 验证
@@ -69,7 +69,16 @@ backlog task edit <id> -s "In Progress" -a @me
 
 - 真实界面 / CLI / API 走一遍，每条断言留证据（命令结果 / 截图 / 状态）。
 - 复杂项目先做整体 Review：跨票影响、接口一致性、数据与状态流转、权限边界、性能、是否符合 `CONTEXT.md`。
-- 全部 DoD 满足 + AC 全勾：`backlog task edit <id> -s "Done"`；周期清理 `backlog task archive <id>`。
+- 全部 DoD 满足 + AC 全勾后，**先写证据 note 再置 `Done`**（固定前缀，hook / CI 依赖这个格式）：
+
+```bash
+backlog task edit <id> --notes "Evidence: ac=<勾选数>/<总数>; reviewer=<审查者>; test=<命令与结果>"
+backlog task edit <id> -s "Done"
+```
+
+> `reviewer` 等于 `-a` 的 assignee 即自批，视为未通过；完整模式再加 `ship=<验收证据>`。
+
+- 周期清理：`backlog task archive <id>`。
 
 ## 硬规则
 
@@ -78,3 +87,4 @@ backlog task edit <id> -s "In Progress" -a @me
 3. 关键检查必做反证，只看绿色退出码 / 全勾不可信。
 4. 缺凭据 / 需人决策 → `-s "Blocked"`（需先声明该状态）或 `--add-label blocked`，并写清原因，不无限重试。
 5. 多 persona 交叉审降低盲区，但最终验收由人拍板。
+6. 本节规则默认只在**提示层**生效；要零例外，把可机械判定的部分接到 hook / CI，可判定性见 `docs/03-gates.md` §二。

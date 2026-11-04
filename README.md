@@ -24,6 +24,8 @@
 2. **验收断言必须可证伪**：写成"无权限用户被 403 拒绝"，而不是"权限功能正常"；未全勾不得转 `Done`。
 3. **执行者不自批**：审查交给独立 persona 或人。
 
+> **三条铁律默认在「提示层」生效。** 它们写在 `AGENTS.md` 契约里，模型通常遵守，但**没有强制力保证**。可机械判定的部分（AC 全勾、`Blocked` 带原因、`Done` 带 reviewer）才能下沉到 hook / CI；反证这类不可判定的，只能靠人工抽样。层级划分与哪些能硬化见 [`docs/03-gates.md` §二](docs/03-gates.md)。本仓库只铺契约，不代装 hook / CI。
+
 ---
 
 ## 前置要求
@@ -40,25 +42,39 @@
 
 ## 快速开始
 
-### 第 1 步 · 安装工作流（一次性，装到全局）
+### 第 1 步 · 安装技能（一次性）
+
+技能目录是纯静态文件，**安装 = 复制目录**：没有安装脚本要跑，也不碰你项目里的任何文件。**在你自己的项目「外面」执行**，别把本仓库 `clone` 进项目目录（会形成嵌套仓库）。
 
 ```bash
-git clone https://github.com/Carson-Lianng/ai-native-workflow.git
-cd ai-native-workflow
-./install.sh          # 自动探测已安装的 agent，把技能装到对应目录
+# 取一份仓库，留着以便日后 git pull 升级
+git clone --depth 1 https://github.com/Carson-Lianng/ai-native-workflow.git ~/tools/ai-native-workflow
+
+# 装到 Claude Code（全局）：把 skills/ 下两个目录复制过去
+mkdir -p ~/.claude/skills
+cp -R ~/tools/ai-native-workflow/skills/* ~/.claude/skills/
 ```
 
-常用参数：
+其它环境只换目标路径：
 
-| 参数 | 作用 |
+| 环境 | 目标路径 |
 |---|---|
-| `--target claude\|cursor\|codebuddy\|all` | 指定环境；缺省为自动探测 |
-| `--dest <dir>` | 装到自定义技能目录（适配未内置的 agent） |
-| `--project` | 装到当前项目而非用户全局 |
-| `--dry-run` | 只打印将要写入的路径，不落盘 |
-| `--force` | 覆盖已存在的同名技能 |
+| Claude Code | `~/.claude/skills/` |
+| CodeBuddy | `~/.codebuddy/skills/` |
+| Cursor | `<项目>/.cursor/skills/`（Cursor 没有全局技能目录） |
+| 其它支持 `AGENTS.md` 的 agent | 你所用 agent 的技能目录 |
 
-脚本只写入技能目录，不碰你项目里的任何文件。
+装到项目级，把目标换成 `<项目>/.claude/skills/` 这类路径即可。
+
+**升级时先删再复制。** `cp -R` 是**合并**，仓库里已删除的文件会残留在你的技能目录里，被 agent 继续当成有效指令执行：
+
+```bash
+git -C ~/tools/ai-native-workflow pull
+rm -rf ~/.claude/skills/workflow-init ~/.claude/skills/backlog-sdd-bridge
+cp -R ~/tools/ai-native-workflow/skills/* ~/.claude/skills/
+```
+
+装完确认落点：`ls ~/.claude/skills/`。
 
 ### 第 2 步 · 初始化某个项目
 
@@ -71,9 +87,11 @@ cd ai-native-workflow
 没有 agent 或想手动铺，等价于：
 
 ```bash
-backlog init "项目名"
-cp <本仓库>/templates/AGENTS.md <本仓库>/templates/CONTEXT.md .
+backlog init "项目名" --defaults --agent-instructions none
+cp <本仓库>/skills/workflow-init/templates/AGENTS.md <本仓库>/skills/workflow-init/templates/CONTEXT.md .
 ```
+
+> `--defaults` 不能省：没有 TTY 时 `backlog init` 会要求交互式向导并直接失败。`--agent-instructions none` 是为了用本仓库的 `AGENTS.md` 模板替换 backlog 自带的版本。
 
 ### 第 3 步 · 跑通第一条任务（5 分钟，可直接照抄）
 
@@ -88,13 +106,14 @@ backlog task create "给 README 补安装说明" \
   --ac "命令在 macOS/Linux 可直接执行" \
   -l needs-review --priority high
 
-# 3. 领票开工
-backlog task edit TASK-1 -s "In Progress" -a @me
+# 3. 领票开工（把「你的名字」换成你的标识，别照抄 @me）
+backlog task edit TASK-1 -s "In Progress" -a 你的名字
 
 # 4. 逐条勾验收断言（1-based 序号）
 backlog task edit TASK-1 --check-ac 1 --check-ac 2
 
-# 5. 审查通过后收尾：注意 -l 会替换全部标签，追加门禁标签用 --add-label
+# 5. 审查通过后收尾：先写证据 note，再置 Done（-l 会替换全部标签，追加用 --add-label）
+backlog task edit TASK-1 --notes "Evidence: ac=2/2; reviewer=<审查者>; test=两条命令在 macOS 直接可执行"
 backlog task edit TASK-1 --add-label reviewed -s "Done"
 
 # 6. 看板确认
@@ -124,14 +143,14 @@ backlog board
 
 ## 支持环境
 
-`install.sh` 会依次探测下列目录，存在即安装：
+技能目录按宿主约定放置，复制到对应路径即可：
 
 | 环境 | 全局技能目录 | 项目级技能目录 |
 |---|---|---|
 | Claude Code | `~/.claude/skills/` | `.claude/skills/` |
 | Cursor | — | `.cursor/skills/` |
 | CodeBuddy | `~/.codebuddy/skills/` | `.codebuddy/skills/` |
-| 其他支持 `AGENTS.md` 的 agent | 用 `--dest <你的技能目录>` 指定 | 同左 |
+| 其他支持 `AGENTS.md` 的 agent | 你所用 agent 的技能目录 | 同左 |
 
 指令文件统一用 `AGENTS.md`（Claude Code、Cursor、Codex 均识别）。非技能型 agent 仍可用全部功能，只是"说一句就初始化"需改为手动执行第 2 步的命令。
 
@@ -141,25 +160,22 @@ backlog board
 
 ```
 README.md                  本文：5 分钟上手
-install.sh                 安装器（探测环境 / --dry-run / --dest / --project）
 
-templates/                 铺进你的项目，是模板的唯一真源
-  AGENTS.md                agent 操作契约　→ 项目根
-  CONTEXT.md               项目事实文件　→ 项目根
-  backlog.config.yml       完整模式 DoD / 状态 / 标签　→ 合并进 backlog/config.yml
-  backlog.config.lite.yml  轻量模式 DoD（3 项）　→ 合并进 backlog/config.yml
-
-skills/                    由 install.sh 装到 agent 技能目录
+skills/                    复制到 agent 的技能目录（见第 1 步）
   workflow-init/           说一句「初始化工作流」即铺好整套
+    templates/             铺进你的项目，是模板的唯一真源（随技能一起安装）
+      AGENTS.md            agent 操作契约　→ 项目根
+      CONTEXT.md           项目事实文件　→ 项目根
+      backlog.config.yml   完整模式 DoD / 状态 / 标签　→ 合并进 backlog/config.yml
+      backlog.config.lite.yml  轻量模式 DoD（3 项）　→ 合并进 backlog/config.yml
   backlog-sdd-bridge/      把 SDD 六阶段与 backlog 命令串联
 
 docs/                      原理与手册
   01-workflow.md           三件套协同、设计原则、五环节
   02-modes.md              轻量 / 完整模式操作手册
-  03-gates.md              DoD、AC、labels、反证
+  03-gates.md              DoD、AC、labels、反证、执行层级
   04-antipatterns.md       反模式与落地 Checklist
 
-scripts/verify-links.sh    维护者自检：相对链接 + 个人化表述残留
 LICENSE                    MIT
 ```
 
@@ -171,7 +187,7 @@ LICENSE                    MIT
 |---|---|
 | [`docs/01-workflow.md`](docs/01-workflow.md) | 三件套协同、核心设计原则、五环节骨架 |
 | [`docs/02-modes.md`](docs/02-modes.md) | 轻量 / 完整模式完整操作手册 |
-| [`docs/03-gates.md`](docs/03-gates.md) | 门禁：DoD、AC、labels、反证纪律 |
+| [`docs/03-gates.md`](docs/03-gates.md) | 门禁：DoD、AC、labels、反证纪律、执行层级 |
 | [`docs/04-antipatterns.md`](docs/04-antipatterns.md) | 7 条反模式 + 落地 Checklist |
 
 ---
@@ -180,7 +196,7 @@ LICENSE                    MIT
 
 1. **事实源单一化**——同一件事只在一处记录，冲突时 `CONTEXT.md` > `backlog decision` > 对话。
 2. **状态机即看板**——中断后靠 `backlog board` / `task list --json` 恢复现场，不靠回忆。
-3. **门禁落在 DoD**——规则写进 DoD，检查靠 `--check-ac`，门禁是"未全勾不转 Done"。
+3. **门禁落在 DoD**——规则写进 DoD，检查靠 `--check-ac`，门禁是"未全勾不转 Done"（默认提示层，硬化方式见 `docs/03-gates.md` §二）。
 4. **分层模型分工**——编排、执行、审查由不同角色承担，执行者不自批。
 5. **按规模分档**——轻量与完整共用约定，只调厚度。
 6. **换模型不换流程**——用同一批真实任务横向对比，替换单个位置，不推倒重来。

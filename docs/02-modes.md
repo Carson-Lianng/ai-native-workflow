@@ -16,16 +16,17 @@
 
 ```bash
 npm i -g backlog.md          # 未安装时
-backlog init "项目名"        # 生成 backlog/ 与 AGENTS.md
+backlog init "项目名" --defaults --agent-instructions none  # 生成 backlog/ 与 config.yml（不生成 AGENTS.md，用模板那份）
 ```
 
-把本仓库的 `templates/AGENTS.md`、`templates/CONTEXT.md` 复制到项目根，把 `templates/backlog.config.yml` 中的 `definition_of_done` 与 `statuses` 合并进 `backlog/config.yml`。
+把本仓库的 `skills/workflow-init/templates/AGENTS.md`、`skills/workflow-init/templates/CONTEXT.md` 复制到项目根，把 `skills/workflow-init/templates/backlog.config.yml` 中的 `definition_of_done` 与 `statuses` 合并进 `backlog/config.yml`。
 
 `backlog init` 常用参数：
 
 | 参数 | 说明 |
 |---|---|
-| `--agent-instructions <claude\|agents\|cursor\|none>` | 生成哪类指令文件；Cursor 与 Claude Code 都读 `AGENTS.md` |
+| `--defaults` | 无 TTY（agent 代跑）时**必带**，否则会要求交互式向导并失败 |
+| `--agent-instructions <claude\|agents\|cursor\|none>` | 生成哪类指令文件；用本仓库模板时选 `none`，Cursor 与 Claude Code 都读 `AGENTS.md` |
 | `--check-branches <true\|false>` | 单人单分支建议 `false` |
 | `--zero-padded-ids <n>` | 需要 `TASK-001` 时设 `3` |
 
@@ -55,18 +56,21 @@ backlog task create "实现邮箱登录" \
 ### 3. 实现 + 验证（`/build` + `/test`）
 
 ```bash
-backlog task edit TASK-1 -s "In Progress" -a @me
+backlog task edit TASK-1 -s "In Progress" -a 你的名字
 # TDD：先写失败测试 → 确认失败 → 最小实现 → 重构 → 提交
 backlog task edit TASK-1 --check-ac 1 --check-ac 2
 ```
 
 ### 4. 审查（`/review`）
 
-五轴自审 + 人工抽查。通过：
+五轴自审 + 人工抽查。通过后**先写证据 note 再置 `Done`**：
 
 ```bash
+backlog task edit TASK-1 --notes "Evidence: ac=2/2; reviewer=<人工抽查者>; test=npm test 通过"
 backlog task edit TASK-1 --add-label reviewed -s "Done"
 ```
+
+> 轻量模式允许自审，但 `reviewer` 仍必须填**人**（抽查者），不能填 `-a` 的 assignee；完整模式填独立 persona。没有 `Evidence:` 记录时，「未全勾不转 `Done`」只是提示，不是门禁。
 
 > `-l` 会**替换**全部标签。追加门禁标签必须用 `--add-label`，否则里程碑标签会被清掉。
 
@@ -94,7 +98,7 @@ backlog task archive TASK-1   # 归档已完成（保留 ID 与依赖链，可 r
 ### 0. 初始化
 
 ```bash
-backlog init "项目名"
+backlog init "项目名" --defaults --agent-instructions none
 ```
 
 在 `backlog/config.yml` 中补齐：

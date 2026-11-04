@@ -12,7 +12,7 @@
    多个 persona 交叉审能降低盲区，但**最终验收由人拍板**。模型说不清"够不够好"，只有使用者知道。
 
 4. **绿色退出码幻觉**
-   全勾 ≠ 正确，CI 绿 ≠ 没坏。关键检查必做反证（见 `03-gates.md` §五）。
+   全勾 ≠ 正确，CI 绿 ≠ 没坏。关键检查必做反证（见 `03-gates.md` §六）。
 
 5. **执行者自批**
    写代码的 agent 审自己的代码，等于没有审查。审查必须是独立 persona 或人。
@@ -35,15 +35,15 @@
 新项目按顺序勾完即可上手：
 
 - [ ] `npm i -g backlog.md`，`backlog --version` 可用
-- [ ] `./install.sh` 装好 `workflow-init` 与 `backlog-sdd-bridge` 技能
-- [ ] 在项目里说「初始化工作流」，或手动 `backlog init "项目名"`
-- [ ] `AGENTS.md` 已就位（`templates/AGENTS.md` 复制或合并）
+- [ ] 两个技能目录已复制到 agent 的技能目录（见 README 第 1 步）
+- [ ] 在项目里说「初始化工作流」，或手动 `backlog init "项目名" --defaults --agent-instructions none`
+- [ ] `AGENTS.md` 已就位（`skills/workflow-init/templates/AGENTS.md` 复制或合并）
 - [ ] `CONTEXT.md` 已就位并填了目标 / 术语 / 约束
 - [ ] `backlog/config.yml` 已按模式选好 `definition_of_done`（3 项或 5 项）
 - [ ] 需要 `Blocked` 状态时，已把它写进 `statuses`
 - [ ] 选定模式：轻量或完整，按 `02-modes.md` 走一遍
 - [ ] 建立版本基线：`CONTEXT.md` + `backlog/` + `docs/` + agent 配置全部纳入 Git
-- [ ] 第一条任务走完：建票 → In Progress → `--check-ac` → `--add-label reviewed` → Done
+- [ ] 第一条任务走完：建票 → In Progress → `--check-ac` → 写 `Evidence:` note → `--add-label reviewed` → Done
 
 ## 日常节奏
 
